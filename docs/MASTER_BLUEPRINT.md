@@ -11,6 +11,8 @@ The target is a system in which a human can move from an idea to a finished prod
 
 ## The production lifecycle
 
+Musicstudio treats the release as the highest creative container. A track is an element of a larger work, and the system can therefore produce singles, three-song mini-releases, EPs, LPs, live sets and unplugged reinterpretations.
+
 ### 01. IDEA / BRIEF
 Creative intent, mood, use case, audience, references, constraints.
 
@@ -101,6 +103,18 @@ Extracts BPM, key, structure, energy, spectral and other usable descriptors from
 Tracks where imported audio came from and whether it is known to be own, licensed, public-domain or unknown.
 
 This is a production safeguard, not legal advice.
+
+### Release / A&R Director
+Builds the artistic arc of a release and keeps the catalogue coherent without forcing every track to sound identical.
+
+### Visual Director
+Owns cover, back cover, booklet, lyrics layout and visual identity.
+
+### Video Director
+Builds music-video / visualizer plans and links visual assets to release concepts.
+
+### Continuity / Sequence Specialist
+Checks the narrative flow of track order, intros, interludes, transitions and outros.
 
 ### Librarian
 Organizes projects, versions, assets, stems, exports, references and temporary material.
