@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from musicstudio.config import settings
+from musicstudio.agents.registry import AgentRegistry
 from musicstudio.models import GenerationJob, GenerationRequest, ProviderCapabilities
 from musicstudio.orchestrator import MusicOrchestrator
 from musicstudio.providers.ace_step import AceStepProvider
@@ -23,6 +24,7 @@ else:
     provider = MockProvider()
 
 orchestrator = MusicOrchestrator(provider)
+agent_registry = AgentRegistry()
 
 app = FastAPI(title="Musicstudio", version="0.1.0")
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
@@ -41,6 +43,21 @@ async def health() -> dict[str, str]:
 @app.get("/api/providers", response_model=list[ProviderCapabilities])
 async def providers() -> list[ProviderCapabilities]:
     return [provider.capabilities]
+
+
+@app.get("/api/agents")
+async def agents() -> list[dict]:
+    return [
+        {
+            "id": agent.id,
+            "role": agent.role,
+            "description": agent.description,
+            "capabilities": list(agent.capabilities),
+            "default_cost": agent.default_cost.value,
+            "requires_audio": agent.requires_audio,
+        }
+        for agent in agent_registry.all()
+    ]
 
 
 @app.post("/api/generate", response_model=GenerationJob)
