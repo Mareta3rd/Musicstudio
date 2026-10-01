@@ -23,7 +23,7 @@ class OpenAIAssistantProvider(AssistantProvider):
 
     def __init__(self, api_key: str | None = None, model: str | None = None) -> None:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY", "")
-        self.model = model or os.getenv("OPENAI_MODEL", "gpt-5.6-luna")
+        self.model = model or os.getenv("OPENAI_MODEL", "gpt-6-luna")
         if not self.api_key:
             raise RuntimeError("OPENAI_API_KEY is not configured")
 
