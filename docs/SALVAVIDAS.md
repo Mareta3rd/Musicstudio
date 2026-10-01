@@ -42,12 +42,17 @@ Implemented in this foundation block:
 - audio proxy path for generated results
 - automated tests
 - architecture documentation
+- Codespaces dev container
+- Doctor / Test / Run helper scripts
+- specialist-agent registry and /api/agents endpoint
+- zero-cost and hybrid runtime strategy
 
 Current limitations:
 
 - Mock mode completes jobs without real audio.
 - ACE-Step integration requires an independently running ACE-Step API server for real audio.
 - Projects and history are currently in-memory; persistence is the next block.
+The specialist agents are currently declared as capabilities, not autonomous model-driven workers. Their execution layer is intentionally postponed until the real audio pipeline is stable.
 
 ## 3. HACIA DÓNDE VAMOS
 
@@ -63,6 +68,14 @@ project -> versions -> reference audio -> edits/remix -> timeline -> stems/layer
 
 The Studio should gradually become more than a generator: a compact local-first creative workstation.
 
+Strategic direction:
+- root control plane
+- specialist agents with explicit scopes
+- local workers by default
+- optional remote workers
+- optional paid APIs only behind explicit configuration
+- project state as the shared source of truth
+
 ## 4. ⚠️ NO TOCAR / DECISIONES FIJADAS
 
 - The Studio must not be tightly coupled to one generation model.
@@ -72,6 +85,7 @@ The Studio should gradually become more than a generator: a compact local-first 
 - Free/local components come first; external services are added only where they provide a clear capability.
 - UI and architecture should work on desktop and adapt to smaller screens.
 - Do not accumulate large amounts of untested code before closing a milestone.
+- The zero-cost path must remain viable even when optional cloud connectors exist.
 
 ## 5. RECOVERY PROCEDURE
 
@@ -82,3 +96,4 @@ When returning after a gap:
 3. Run the test suite.
 4. Start the application in Mock mode.
 5. Only then resume the next engineering block.
+6. Check the latest issue/PR and continue from the next stated milestone.
