@@ -44,7 +44,7 @@ Implemented in this foundation block:
 - architecture documentation
 - Codespaces dev container
 - Doctor / Test / Run helper scripts
-- specialist-agent registry and /api/agents endpoint
+- specialist-agent registry and /api/agents endpoint (expanded to production, lyric, vocal, MIDI, mix, finish and release roles)
 - zero-cost and hybrid runtime strategy
 
 Current limitations:
