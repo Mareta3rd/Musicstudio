@@ -42,3 +42,12 @@ async def test_provider_failure_is_recorded():
     job = await orchestrator.create_job(GenerationRequest(prompt="test"))
     assert job.status == JobStatus.failed
     assert "simulated failure" in (job.error or "")
+
+
+@pytest.mark.asyncio
+async def test_ace_step_audio_url_builder():
+    from musicstudio.providers.ace_step import AceStepProvider
+
+    provider = AceStepProvider("http://127.0.0.1:8001")
+    assert provider.build_audio_url("/v1/audio?path=%2Ftmp%2Fa.mp3") == "http://127.0.0.1:8001/v1/audio?path=%2Ftmp%2Fa.mp3"
+    assert provider.build_audio_url("/tmp/a.mp3") == "http://127.0.0.1:8001/v1/audio?path=%2Ftmp%2Fa.mp3"
