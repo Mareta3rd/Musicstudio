@@ -38,6 +38,12 @@ Musicstudio adopts the most useful tested mechanisms from the Arsa & Pisha seman
 - specialist-agent registry
 - Codespaces runtime
 
+## Standard resume command
+
+    bash scripts/start_work_block.sh
+
+This synchronizes the active branch, installs current development dependencies, runs Doctor, and executes the complete test suite.
+
 ## Primary next target
 
 Synchronize the Codespace with the current remote checkpoint, verify the OpenAI specialist call, then persist the project/version graph.
