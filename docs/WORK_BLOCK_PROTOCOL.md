@@ -6,7 +6,10 @@ Musicstudio is developed in closed, auditable blocks.
 
 Before starting or resuming:
 
-    git status --short
+    bash scripts/start_work_block.sh
+
+For a lightweight synchronization-only check, use:
+
     bash scripts/sync_work_block.sh
 
 The synchronizer distinguishes GREEN, BEHIND, AHEAD, DIVERGED and BEHIND + DIRTY.
