@@ -36,6 +36,20 @@ Then open http://127.0.0.1:8000.
 
 The default provider is mock, so the application starts without an AI model.
 
+## Codespaces
+
+The repository includes a `.devcontainer/devcontainer.json` so a new Codespace gets Python 3.12 and project dependencies automatically. Helper commands:
+
+    python scripts/doctor.py
+    python scripts/test.py
+    python scripts/run.py
+
+The included personal-account Codespaces allowance is finite, so stop the Codespace when finished.
+
+## Production vision
+
+Musicstudio is intended to cover the production chain from brief and lyrics through composition, arrangement, editing, mixing, polish, mastering and delivery. A specialist-agent registry is already part of the foundation; agents will be activated progressively as the underlying audio pipeline becomes reliable.
+
 ## Provider modes
 
 Mock:
