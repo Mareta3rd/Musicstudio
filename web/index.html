@@ -1,0 +1,136 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Musicstudio</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">M</span>
+        <div>
+          <div class="brand-name">Musicstudio</div>
+          <div class="brand-sub">AI music laboratory</div>
+        </div>
+      </div>
+      <div class="status-pill"><span class="status-dot"></span><span id="providerLabel">Laboratory</span></div>
+    </header>
+
+    <main class="workspace">
+      <section class="composer panel">
+        <div class="eyebrow">CREATE</div>
+        <h1>Put an idea into motion.</h1>
+        <p class="muted">Describe the music as you hear it. Fine-tune only what matters.</p>
+
+        <label class="field-label" for="prompt">Creative brief</label>
+        <textarea id="prompt" rows="7" placeholder="A nocturnal Mediterranean track, intimate vocals, warm analog bass, distant guitar, slow-burning pulse..."></textarea>
+
+        <div class="chip-row" id="chips">
+          <button class="chip" data-add="cinematic">Cinematic</button>
+          <button class="chip" data-add="organic">Organic</button>
+          <button class="chip" data-add="electronic">Electronic</button>
+          <button class="chip" data-add="dreamy">Dreamy</button>
+          <button class="chip" data-add="dark">Dark</button>
+        </div>
+
+        <div class="advanced-grid">
+          <div>
+            <label class="field-label" for="duration">Duration</label>
+            <select id="duration">
+              <option value="20">20 sec</option>
+              <option value="30" selected>30 sec</option>
+              <option value="60">1 min</option>
+              <option value="120">2 min</option>
+              <option value="180">3 min</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="bpm">BPM</label>
+            <input id="bpm" type="number" min="30" max="300" placeholder="Auto">
+          </div>
+          <div>
+            <label class="field-label" for="key">Key</label>
+            <input id="key" type="text" placeholder="Auto">
+          </div>
+          <div>
+            <label class="field-label" for="language">Voice</label>
+            <select id="language">
+              <option value="en" selected>English</option>
+              <option value="es">Español</option>
+              <option value="ca">Català</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+            </select>
+          </div>
+        </div>
+
+        <label class="field-label" for="lyrics">Lyrics <span class="optional">optional</span></label>
+        <textarea id="lyrics" rows="4" placeholder="[Verse 1]&#10;Write lyrics here, or leave blank and let the provider decide."></textarea>
+
+        <button id="generate" class="generate-btn">
+          <span>Generate</span>
+          <span class="generate-icon">↗</span>
+        </button>
+        <div id="error" class="error" hidden></div>
+      </section>
+
+      <section class="result panel">
+        <div class="result-head">
+          <div>
+            <div class="eyebrow">CANVAS</div>
+            <h2 id="resultTitle">Your next track</h2>
+          </div>
+          <div id="resultStatus" class="mini-status">READY</div>
+        </div>
+
+        <div id="emptyState" class="empty-state">
+          <div class="orb"></div>
+          <div class="empty-title">Nothing generated yet</div>
+          <div class="muted">Your first generation will appear here as a version.</div>
+        </div>
+
+        <div id="trackState" class="track-state" hidden>
+          <div class="track-top">
+            <div>
+              <div class="track-title" id="trackTitle">Untitled</div>
+              <div class="track-meta" id="trackMeta"></div>
+            </div>
+            <button id="newVersion" class="ghost-btn">New version</button>
+          </div>
+
+          <div class="wave" id="wave"></div>
+          <audio id="audio" controls hidden></audio>
+
+          <div class="track-actions">
+            <button class="action-btn">↻ Remix</button>
+            <button class="action-btn">＋ Layer</button>
+            <button class="action-btn">✦ Repaint</button>
+            <button class="action-btn">⇩ Export</button>
+          </div>
+
+          <div class="lab-note" id="labNote" hidden>
+            Laboratory mode is active. The workflow is real; this provider intentionally does not synthesize audio.
+          </div>
+        </div>
+      </section>
+
+      <aside class="history panel">
+        <div class="eyebrow">HISTORY</div>
+        <div id="historyList" class="history-list">
+          <div class="history-empty">Versions will collect here.</div>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span>Musicstudio 0.1</span>
+      <span>Local-first · provider-independent</span>
+    </footer>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
