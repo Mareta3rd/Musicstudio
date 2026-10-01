@@ -44,7 +44,9 @@ Implemented in this foundation block:
 - architecture documentation
 - Codespaces dev container
 - Doctor / Test / Run helper scripts
-- specialist-agent registry and /api/agents endpoint (expanded to production, lyric, vocal, MIDI, mix, finish and release roles)
+- specialist-agent registry and /api/agents endpoint (expanded to production, lyric, vocal, MIDI, mix, finish, release and album-level roles)
+- release/album domain model for singles, mini-releases, EPs, LPs, live and unplugged works
+- optional addon manifest/registry foundation
 - zero-cost and hybrid runtime strategy
 
 Current limitations:
