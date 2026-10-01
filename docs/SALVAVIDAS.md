@@ -48,6 +48,8 @@ Implemented in this foundation block:
 - release/album domain model for singles, mini-releases, EPs, LPs, live and unplugged works
 - optional addon manifest/registry foundation
 - zero-cost and hybrid runtime strategy
+- optional OpenAI assistant provider using `OPENAI_API_KEY`
+- specialist runtime capable of routing prompts to named production roles
 
 Current limitations:
 
@@ -88,6 +90,8 @@ Strategic direction:
 - UI and architecture should work on desktop and adapt to smaller screens.
 - Do not accumulate large amounts of untested code before closing a milestone.
 - The zero-cost path must remain viable even when optional cloud connectors exist.
+- OpenAI is an optional intelligence accelerator; it must never be a hidden dependency.
+- API keys are secrets and never belong in source files, commits or chat messages.
 
 ## 5. RECOVERY PROCEDURE
 
@@ -99,3 +103,4 @@ When returning after a gap:
 4. Start the application in Mock mode.
 5. Only then resume the next engineering block.
 6. Check the latest issue/PR and continue from the next stated milestone.
+7. When an API key is configured, verify its presence without printing its value.
