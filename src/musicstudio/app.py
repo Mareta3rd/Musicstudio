@@ -9,7 +9,10 @@ from fastapi.staticfiles import StaticFiles
 
 from musicstudio.config import settings
 from musicstudio.agents.registry import AgentRegistry
+from musicstudio.agents.runtime import SpecialistRuntime
+from musicstudio.assistant import OpenAIAssistantProvider
 from musicstudio.models import GenerationJob, GenerationRequest, ProviderCapabilities
+from pydantic import BaseModel, Field
 from musicstudio.orchestrator import MusicOrchestrator
 from musicstudio.providers.ace_step import AceStepProvider
 from musicstudio.providers.mock import MockProvider
@@ -25,6 +28,24 @@ else:
 
 orchestrator = MusicOrchestrator(provider)
 agent_registry = AgentRegistry()
+
+
+class AssistantRequest(BaseModel):
+    agent_id: str = Field(min_length=1, max_length=100)
+    prompt: str = Field(min_length=1, max_length=12000)
+
+
+class AssistantResponse(BaseModel):
+    text: str
+    provider: str
+    model: str
+
+
+def get_assistant_runtime() -> SpecialistRuntime:
+    if settings.assistant_provider != "openai":
+        raise HTTPException(status_code=503, detail="OpenAI assistant is disabled")
+    assistant = OpenAIAssistantProvider(model=settings.openai_model)
+    return SpecialistRuntime(agent_registry, assistant)
 
 app = FastAPI(title="Musicstudio", version="0.1.0")
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
@@ -58,6 +79,17 @@ async def agents() -> list[dict]:
         }
         for agent in agent_registry.all()
     ]
+
+
+@app.post("/api/assistant", response_model=AssistantResponse)
+async def assistant(request: AssistantRequest) -> AssistantResponse:
+    try:
+        result = await get_assistant_runtime().ask(request.agent_id, request.prompt)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return AssistantResponse(text=result.text, provider=result.provider, model=result.model)
 
 
 @app.post("/api/generate", response_model=GenerationJob)
