@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import quote, urljoin
 
 import httpx
 
@@ -136,12 +137,17 @@ class AceStepProvider(MusicProvider):
             },
         )
 
-    async def download_audio(self, audio_path: str) -> tuple[bytes, str]:
-        if audio_path.startswith("http://") or audio_path.startswith("https://"):
-            url = audio_path
-        else:
-            url = f"{self.base_url}{audio_path}"
+    def build_audio_url(self, audio_path: str) -> str:
+        # ACE-Step normally returns /v1/audio?path=... .
+        # Some deployments may return an absolute URL or a raw server path.
+        if audio_path.startswith(("http://", "https://")):
+            return audio_path
+        if audio_path.startswith("/v1/audio"):
+            return urljoin(self.base_url + "/", audio_path.lstrip("/"))
+        return self.base_url + "/v1/audio?path=" + quote(audio_path, safe="")
 
+    async def download_audio(self, audio_path: str) -> tuple[bytes, str]:
+        url = self.build_audio_url(audio_path)
         async with httpx.AsyncClient(timeout=120) as client:
             response = await client.get(url, headers=self._headers())
             response.raise_for_status()
