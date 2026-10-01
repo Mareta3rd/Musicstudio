@@ -48,7 +48,7 @@ Implemented in this foundation block:
 - release/album domain model for singles, mini-releases, EPs, LPs, live and unplugged works
 - optional addon manifest/registry foundation
 - zero-cost and hybrid runtime strategy
-- optional OpenAI assistant provider using `OPENAI_API_KEY`
+- optional OpenAI assistant provider using `OPENAI_API_KEY` (default model: `gpt-6-luna`)
 - specialist runtime capable of routing prompts to named production roles
 
 Current limitations:
