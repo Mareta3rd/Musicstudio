@@ -46,6 +46,10 @@ The repository includes a `.devcontainer/devcontainer.json` so a new Codespace g
 
 The included personal-account Codespaces allowance is finite, so stop the Codespace when finished.
 
+For routine development, start a work block with:
+
+    bash scripts/start_work_block.sh
+
 ## Production vision
 
 Musicstudio is intended to cover the production chain from brief and lyrics through composition, arrangement, editing, mixing, polish, mastering and delivery. A specialist-agent registry is already part of the foundation; agents will be activated progressively as the underlying audio pipeline becomes reliable.
