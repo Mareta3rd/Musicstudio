@@ -23,6 +23,7 @@ def main() -> int:
     print(f"  [{'OK' if os.getenv('GEMINI_API_KEY') else '--'}] Gemini")
     print(f"  [{'OK' if os.getenv('GROQ_API_KEY') else '--'}] Groq")
     print(f"  [{'OK' if os.getenv('OPENROUTER_API_KEY') else '--'}] OpenRouter (free, variable availability)")
+    print(f"  [{'ON' if os.getenv('OLLAMA_ENABLED', '').lower() in {'1', 'true', 'yes', 'on'} else '--'}] Ollama (local)")
     print(f"  [{'OK' if os.getenv('OPENAI_API_KEY') else '--'}] OpenAI (optional/paid)")
     print()
 
