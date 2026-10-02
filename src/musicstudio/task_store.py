@@ -78,6 +78,17 @@ class TaskStore:
             row = db.execute('SELECT * FROM agent_tasks WHERE id = ?', (task_id,)).fetchone()
         return self._row(row) if row else None
 
+    def claim_task(self, task_id: str) -> AgentTaskRecord | None:
+        now = _now()
+        with self._connect() as db:
+            cursor = db.execute(
+                "UPDATE agent_tasks SET status = 'running', updated_at = ? WHERE id = ? AND status = 'queued'",
+                (now, task_id),
+            )
+            if cursor.rowcount == 0:
+                return None
+        return self.get_task(task_id)
+
     def set_status(self, task_id: str, status: str, result: dict | None = None) -> AgentTaskRecord | None:
         now = _now()
         encoded = json.dumps(result, ensure_ascii=False, sort_keys=True) if result is not None else None
