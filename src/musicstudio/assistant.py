@@ -123,3 +123,53 @@ class FallbackAssistantProvider(AssistantProvider):
             except Exception as exc:
                 errors.append(f"{provider.name}: {exc}")
         raise RuntimeError("All configured free assistant providers failed: " + " | ".join(errors))
+
+
+class OpenRouterAssistantProvider(AssistantProvider):
+    name = "openrouter"
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        base_url: str = "https://openrouter.ai/api/v1",
+    ) -> None:
+        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY", "")
+        self.model = model or os.getenv("OPENROUTER_MODEL", "openrouter/free")
+        self.base_url = base_url.rstrip("/")
+        if not self.api_key:
+            raise RuntimeError("OPENROUTER_API_KEY is not configured")
+
+    async def generate(self, instructions: str, prompt: str) -> AssistantResult:
+        import httpx
+
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.7,
+            "max_tokens": 2000,
+        }
+        async with httpx.AsyncClient(timeout=90) as client:
+            response = await client.post(
+                f"{self.base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+            if response.status_code >= 400:
+                raise RuntimeError(f"OpenRouter request failed ({response.status_code})")
+            body = response.json()
+
+        choices = body.get("choices") or []
+        if not choices:
+            raise RuntimeError("OpenRouter returned no choices")
+        message = choices[0].get("message") or {}
+        text = message.get("content")
+        if not isinstance(text, str) or not text.strip():
+            raise RuntimeError("OpenRouter returned empty content")
+        return AssistantResult(text=text, model=self.model, provider=self.name)
