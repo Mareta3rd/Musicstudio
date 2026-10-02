@@ -53,6 +53,12 @@ class ProjectStore:
                 )
             ''')
             db.execute('''
+                CREATE TABLE IF NOT EXISTS project_state (
+                    project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+                    state TEXT NOT NULL
+                )
+            ''')
+                        db.execute('''
                 CREATE TABLE IF NOT EXISTS versions (
                     id TEXT PRIMARY KEY,
                     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -117,6 +123,27 @@ class ProjectStore:
             if cursor.rowcount == 0:
                 return None
         return self.get_project(project_id)
+
+    def get_state(self, project_id: str) -> dict:
+        with self._connect() as db:
+            row = db.execute('SELECT state FROM project_state WHERE project_id = ?', (project_id,)).fetchone()
+        if row is None:
+            return {}
+        return json.loads(row['state'])
+
+    def save_state(self, project_id: str, state: dict) -> bool:
+        if self.get_project(project_id) is None:
+            return False
+        payload = json.dumps(state, ensure_ascii=False, sort_keys=True)
+        now = _now()
+        with self._connect() as db:
+            db.execute(
+                'INSERT INTO project_state (project_id, state) VALUES (?, ?) '
+                'ON CONFLICT(project_id) DO UPDATE SET state=excluded.state',
+                (project_id, payload),
+            )
+            db.execute('UPDATE projects SET updated_at = ? WHERE id = ?', (now, project_id))
+        return True
 
     def create_version(self, project_id: str, label: str, payload: dict) -> int:
         now = _now()
