@@ -82,6 +82,21 @@ class ProjectStore:
             )
         return ProjectRecord(project_id, title.strip(), artist.strip(), kind.value, concept.strip(), creative_brief.strip(), now, now)
 
+    def list_projects(self, limit: int = 100) -> list[ProjectRecord]:
+        limit = max(1, min(int(limit), 500))
+        with self._connect() as db:
+            rows = db.execute(
+                'SELECT * FROM projects ORDER BY updated_at DESC LIMIT ?',
+                (limit,),
+            ).fetchall()
+        return [
+            ProjectRecord(
+                row['id'], row['title'], row['artist'], row['kind'],
+                row['concept'], row['creative_brief'], row['created_at'], row['updated_at'],
+            )
+            for row in rows
+        ]
+
     def get_project(self, project_id: str) -> ProjectRecord | None:
         with self._connect() as db:
             row = db.execute('SELECT * FROM projects WHERE id = ?', (project_id,)).fetchone()
