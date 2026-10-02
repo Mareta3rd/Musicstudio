@@ -127,9 +127,10 @@ def get_assistant_runtime() -> SpecialistRuntime:
 
 guides: dict[str, GuideSession] = {}
 creative_guide = CreativeGuide()
-project_store = ProjectStore()
-library_store = LibraryStore()
-task_store = TaskStore()
+DATA_DIR = BASE_DIR / "data"
+project_store = ProjectStore(DATA_DIR / "musicstudio.db")
+library_store = LibraryStore(DATA_DIR / "musicstudio.db")
+task_store = TaskStore(DATA_DIR / "musicstudio.db")
 
 app = FastAPI(title="Musicstudio", version="0.1.0")
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
