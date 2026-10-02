@@ -46,7 +46,7 @@ This synchronizes the active branch, installs current development dependencies, 
 
 ## Primary next target
 
-Synchronize the Codespace with the current remote checkpoint, verify the OpenAI specialist call, then persist the project/version graph.
+Synchronize the Codespace with the current remote checkpoint, verify the Gemini specialist call, then persist the project/version graph.
 
 ## Known limitations
 
