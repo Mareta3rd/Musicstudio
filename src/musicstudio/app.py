@@ -10,7 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from musicstudio.config import settings
 from musicstudio.agents.registry import AgentRegistry
 from musicstudio.agents.runtime import SpecialistRuntime
-from musicstudio.assistant import OpenAIAssistantProvider
+from musicstudio.assistant import GeminiAssistantProvider, OpenAIAssistantProvider
+from musicstudio.guide import CreativeGuide, GuideSession
 from musicstudio.models import GenerationJob, GenerationRequest, ProviderCapabilities
 from pydantic import BaseModel, Field
 from musicstudio.orchestrator import MusicOrchestrator
@@ -41,11 +42,40 @@ class AssistantResponse(BaseModel):
     model: str
 
 
+class GuideStartResponse(BaseModel):
+    session_id: str
+    question_id: str | None
+    question: str | None
+    purpose: str | None
+
+
+class GuideAnswerRequest(BaseModel):
+    session_id: str = Field(min_length=1, max_length=100)
+    question_id: str = Field(min_length=1, max_length=100)
+    answer: str = Field(min_length=1, max_length=4000)
+
+
+class GuideAnswerResponse(BaseModel):
+    session_id: str
+    question_id: str | None
+    question: str | None
+    purpose: str | None
+    complete: bool
+    brief: str | None = None
+
+
 def get_assistant_runtime() -> SpecialistRuntime:
-    if settings.assistant_provider != "openai":
-        raise HTTPException(status_code=503, detail="OpenAI assistant is disabled")
-    assistant = OpenAIAssistantProvider(model=settings.openai_model)
+    if settings.assistant_provider == "openai":
+        assistant = OpenAIAssistantProvider(model=settings.openai_model)
+    elif settings.assistant_provider == "gemini":
+        assistant = GeminiAssistantProvider(model=settings.gemini_model)
+    else:
+        raise HTTPException(status_code=503, detail="No external assistant provider is enabled")
     return SpecialistRuntime(agent_registry, assistant)
+
+
+guides: dict[str, GuideSession] = {}
+creative_guide = CreativeGuide()
 
 app = FastAPI(title="Musicstudio", version="0.1.0")
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
@@ -79,6 +109,49 @@ async def agents() -> list[dict]:
         }
         for agent in agent_registry.all()
     ]
+
+
+@app.post("/api/guide/start", response_model=GuideStartResponse)
+async def guide_start() -> GuideStartResponse:
+    import uuid
+
+    session_id = str(uuid.uuid4())
+    session = creative_guide.start()
+    guides[session_id] = session
+    question = creative_guide.next_question(session)
+    return GuideStartResponse(
+        session_id=session_id,
+        question_id=question.id if question else None,
+        question=question.text if question else None,
+        purpose=question.purpose if question else None,
+    )
+
+
+@app.post("/api/guide/answer", response_model=GuideAnswerResponse)
+async def guide_answer(request: GuideAnswerRequest) -> GuideAnswerResponse:
+    session = guides.get(request.session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Guide session not found")
+    try:
+        question = creative_guide.answer(session, request.question_id, request.answer)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if question is None:
+        return GuideAnswerResponse(
+            session_id=request.session_id,
+            question_id=None,
+            question=None,
+            purpose=None,
+            complete=True,
+            brief=creative_guide.brief(session),
+        )
+    return GuideAnswerResponse(
+        session_id=request.session_id,
+        question_id=question.id,
+        question=question.text,
+        purpose=question.purpose,
+        complete=False,
+    )
 
 
 @app.post("/api/assistant", response_model=AssistantResponse)
