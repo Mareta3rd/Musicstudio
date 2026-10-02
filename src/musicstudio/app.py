@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from musicstudio.config import settings
 from musicstudio.agents.registry import AgentRegistry
 from musicstudio.agents.runtime import SpecialistRuntime
-from musicstudio.assistant import GeminiAssistantProvider, GroqAssistantProvider, OpenAIAssistantProvider
+from musicstudio.assistant import FallbackAssistantProvider, GeminiAssistantProvider, GroqAssistantProvider, OpenAIAssistantProvider
 from musicstudio.guide import CreativeGuide, GuideSession
 from musicstudio.producer import parse_producer_plan, producer_prompt
 from musicstudio.project_store import ProjectStore
@@ -99,11 +99,17 @@ class ProducerPlanResponse(BaseModel):
 
 def get_assistant_runtime() -> SpecialistRuntime:
     provider_name = settings.assistant_provider
+
     if provider_name == "auto":
+        free_providers = []
         if os.getenv("GEMINI_API_KEY"):
-            provider_name = "gemini"
-        elif os.getenv("GROQ_API_KEY"):
-            provider_name = "groq"
+            free_providers.append(GeminiAssistantProvider(model=settings.gemini_model))
+        if os.getenv("GROQ_API_KEY"):
+            free_providers.append(GroqAssistantProvider(model=settings.groq_model))
+        if not free_providers:
+            raise HTTPException(status_code=503, detail="No free assistant provider is enabled")
+        assistant = FallbackAssistantProvider(free_providers)
+        return SpecialistRuntime(agent_registry, assistant)
 
     if provider_name == "openai":
         assistant = OpenAIAssistantProvider(model=settings.openai_model)
