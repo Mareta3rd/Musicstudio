@@ -21,8 +21,11 @@ class SpecialistRuntime:
         self.registry = registry
         self.provider = provider
 
-    async def ask(self, agent_id: str, prompt: str):
+    async def ask(self, agent_id: str, prompt: str, extra_instructions: str = ""):
         agent = self.registry.get(agent_id)
         if agent is None:
             raise KeyError(f"Unknown agent: {agent_id}")
-        return await self.provider.generate(specialist_instructions(agent), prompt)
+        instructions = specialist_instructions(agent)
+        if extra_instructions.strip():
+            instructions += " " + extra_instructions.strip()
+        return await self.provider.generate(instructions, prompt)
