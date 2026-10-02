@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from musicstudio.config import settings
 from musicstudio.agents.registry import AgentRegistry
 from musicstudio.agents.runtime import SpecialistRuntime
-from musicstudio.assistant import FallbackAssistantProvider, GeminiAssistantProvider, GroqAssistantProvider, OpenAIAssistantProvider, OpenRouterAssistantProvider
+from musicstudio.assistant import FallbackAssistantProvider, GeminiAssistantProvider, GroqAssistantProvider, OpenAIAssistantProvider, OpenRouterAssistantProvider, OllamaAssistantProvider
 from musicstudio.guide import CreativeGuide, GuideSession
 from musicstudio.producer import parse_producer_plan, producer_prompt
 from musicstudio.project_store import ProjectStore
@@ -105,6 +105,13 @@ def get_assistant_runtime() -> SpecialistRuntime:
 
     if provider_name == "auto":
         free_providers = []
+        if os.getenv("OLLAMA_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}:
+            free_providers.append(
+                OllamaAssistantProvider(
+                    model=settings.ollama_model,
+                    base_url=settings.ollama_base_url,
+                )
+            )
         if os.getenv("GEMINI_API_KEY"):
             free_providers.append(GeminiAssistantProvider(model=settings.gemini_model))
         if os.getenv("GROQ_API_KEY"):
@@ -124,6 +131,11 @@ def get_assistant_runtime() -> SpecialistRuntime:
         assistant = GroqAssistantProvider(model=settings.groq_model)
     elif provider_name == "openrouter":
         assistant = OpenRouterAssistantProvider(model=settings.openrouter_model)
+    elif provider_name == "ollama":
+        assistant = OllamaAssistantProvider(
+            model=settings.ollama_model,
+            base_url=settings.ollama_base_url,
+        )
     else:
         raise HTTPException(status_code=503, detail="No external assistant provider is enabled")
     return SpecialistRuntime(agent_registry, assistant)
