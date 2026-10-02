@@ -107,6 +107,46 @@ class GroqAssistantProvider(AssistantProvider):
         return AssistantResult(text=text, model=self.model, provider=self.name)
 
 
+class OllamaAssistantProvider(AssistantProvider):
+    name = "ollama"
+
+    def __init__(
+        self,
+        model: str | None = None,
+        base_url: str | None = None,
+    ) -> None:
+        self.model = model or os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+        self.base_url = (base_url or os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434/v1")).rstrip("/")
+        self.enabled = os.getenv("OLLAMA_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
+
+    async def generate(self, instructions: str, prompt: str) -> AssistantResult:
+        if not self.enabled:
+            raise RuntimeError("OLLAMA_ENABLED is not enabled")
+        from openai import AsyncOpenAI
+
+        client = AsyncOpenAI(base_url=self.base_url, api_key="ollama")
+        try:
+            response = await client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": instructions},
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.7,
+                max_tokens=2000,
+            )
+            choices = response.choices
+            if not choices or not choices[0].message.content:
+                raise RuntimeError("Ollama returned empty content")
+            return AssistantResult(
+                text=choices[0].message.content,
+                model=self.model,
+                provider=self.name,
+            )
+        finally:
+            await client.close()
+
+
 class FallbackAssistantProvider(AssistantProvider):
     name = "auto-free"
 
