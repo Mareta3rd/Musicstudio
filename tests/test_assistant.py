@@ -28,3 +28,21 @@ def test_groq_requires_a_key_when_explicitly_constructed():
 
     with pytest.raises(RuntimeError, match="GROQ_API_KEY"):
         GroqAssistantProvider(api_key="")
+
+
+@pytest.mark.asyncio
+async def test_specialist_runtime_passes_extra_instructions():
+    from musicstudio.assistant import AssistantResult
+
+    class CaptureProvider(AssistantProvider):
+        def __init__(self):
+            self.instructions = ""
+
+        async def generate(self, instructions, prompt):
+            self.instructions = instructions
+            return AssistantResult("ok", "fake", "fake")
+
+    provider = CaptureProvider()
+    runtime = SpecialistRuntime(AgentRegistry(), provider)
+    await runtime.ask("producer", "brief", extra_instructions="Return JSON only.")
+    assert "Return JSON only." in provider.instructions
