@@ -4,17 +4,19 @@
 
 Repository: Mareta3rd/Musicstudio
 Working branch: foundation/studio-core
+Current checkpoint: 9226eb0d15a597c9e323cf3bde65af922a417887
 
-Latest human-verified local baseline:
-- Python 3.12.11
-- Doctor: green
-- Test suite: 16 passed before the current persistence/agent block
-- Gemini assistant connectivity: VERIFIED
-- OpenAI API connectivity: reached live API but account returned insufficient quota
-- Gemini secret present in Codespaces, value not exposed
-- Groq provider added but not yet live-verified
+Latest repository CI before this block:
+- Python 3.12: success
+- Python 3.11: success
+- checkpoint: 9709160d07e3baabb76ffc7c9c59504e7adb0116
 
-Remote development since that checkpoint has added project persistence, project state, asset catalog, Producer planning, bounded agent loops/audit, Creative Guide project creation UI, and free assistant fallback. These changes still require the next Codespace verification run.
+Current work block:
+- ACE-Step provider now accepts an optional httpx transport for deterministic integration testing.
+- REST response code handling accepts numeric 200 and string "200".
+- Added deterministic tests for release_task submission, query_result normalization, audio retrieval and failed-job normalization.
+- The new checkpoint is being verified by GitHub CI on Python 3.11 and 3.12.
+- Local container execution is unavailable because this environment cannot resolve github.com; no local test result is claimed for this block.
 
 ## Inherited mechanisms
 
@@ -44,30 +46,33 @@ Musicstudio adopts the most useful tested mechanisms from the Arsa & Pisha seman
 - release/album domain
 - addon registry
 - specialist-agent registry
+- project/version/state persistence
+- persistent specialist task queue
+- bounded lyricist/prosody execution path
 - Codespaces runtime
-
-## Standard resume command
-
-    bash scripts/start_work_block.sh
-
-This synchronizes the active branch, installs current development dependencies, runs Doctor, and executes the complete test suite.
 
 ## Primary next target
 
-Synchronize the Codespace with the current remote checkpoint, run the full suite, then exercise Guide -> persistent Project -> Producer plan -> task queue.
+After the current CI checkpoint is green, run the full Codespace work-block protocol and exercise the end-to-end control flow:
+Guide -> persistent Project -> Producer plan -> queued tasks -> first live Lyricist task.
+
+Then move directly into real ACE-Step verification:
+release_task -> query_result -> audio retrieval -> Musicstudio audio proxy -> browser playback.
 
 ## Known limitations
 
 - ACE-Step is not yet running in the current Codespace.
 - FFmpeg is optional and not installed.
 - specialist agents are registered and routable, but autonomous multi-agent orchestration is not yet active.
-- project persistence is implemented with SQLite; the new endpoints and persistence tests still need human Codespace execution.
-- persistent specialist task queue is implemented; new task endpoints/tests still need human Codespace execution.
-- lyricist/prosody execution path is implemented; live Gemini execution through the task endpoint still needs verification.
+- live Gemini execution through the task endpoint still needs verification.
 - timeline/arrangement domain model is implemented; route integration is intentionally deferred until the project state API settles.
 - Control Plane abstraction is implemented; MCP server remains deferred pending SDK security review.
 - OpenRouter free fallback is implemented; live connectivity is not verified.
 - project state is stored as a generic JSON document separate from the SQL index.
 - asset catalog/provenance/lifecycle persistence is implemented; physical cleanup is intentionally not automatic.
-- Guide sessions remain in-memory until project creation; persistence starts once a project is created.
+- Guide sessions remain in-memory until project creation.
 - Producer planning is implemented with validated JSON parsing and project-version storage; live execution of a Producer plan is still pending.
+
+## Verification rule
+
+Do not mark this block as fully verified until the GitHub CI run for checkpoint 9226eb0d15a597c9e323cf3bde65af922a417887 is green.
