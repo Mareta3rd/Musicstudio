@@ -24,3 +24,14 @@ def test_release_can_seed_a_project(tmp_path):
     project = store.create_release_project(release, 'brief')
     assert project.title == 'Tres Estaciones'
     assert project.kind == 'mini'
+
+def test_project_state_round_trips_as_generic_document(tmp_path):
+    store = ProjectStore(tmp_path / "musicstudio.db")
+    project = store.create_project(title="State Test")
+    state = {
+        "release": {"tracks": [{"id": "t1", "role": "main"}]},
+        "assets": [{"id": "a1", "kind": "audio", "state": "active"}],
+        "mix": {"version": 1},
+    }
+    assert store.save_state(project.id, state)
+    assert store.get_state(project.id) == state
