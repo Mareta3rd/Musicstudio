@@ -6,11 +6,13 @@ Repository: Mareta3rd/Musicstudio
 Working branch: foundation/studio-core
 
 Latest human-verified local baseline:
-- Python 3.14.2
+- Python 3.12.11
 - Doctor: green
-- Test suite: 10 passed
-- 37 pytest-asyncio deprecation warnings
-- OpenAI secret present in Codespaces, value not exposed
+- Test suite: 16 passed on the last human run before the current project-persistence block
+- Gemini assistant connectivity: VERIFIED
+- OpenAI API connectivity: reached live API but account returned insufficient quota
+- Gemini secret present in Codespaces, value not exposed
+- Groq provider added but not yet live-verified
 
 ## Inherited mechanisms
 
@@ -32,7 +34,9 @@ Musicstudio adopts the most useful tested mechanisms from the Arsa & Pisha seman
 
 - FastAPI control plane
 - Mock and ACE-Step music providers
-- OpenAI specialist provider (optional)
+- OpenAI specialist provider (optional; account currently has no API credits)
+- Gemini specialist provider (free-tier candidate; live-verified)
+- Groq/Qwen specialist provider (free-tier fallback; provider added)
 - release/album domain
 - addon registry
 - specialist-agent registry
@@ -46,11 +50,12 @@ This synchronizes the active branch, installs current development dependencies, 
 
 ## Primary next target
 
-Synchronize the Codespace with the current remote checkpoint, verify the Gemini specialist call, then persist the project/version graph.
+Synchronize the Codespace with the current remote checkpoint, run the full suite, then exercise Guide -> persistent Project -> Producer plan.
 
 ## Known limitations
 
 - ACE-Step is not yet running in the current Codespace.
 - FFmpeg is optional and not installed.
 - specialist agents are registered and routable, but autonomous multi-agent orchestration is not yet active.
-- project persistence is not yet implemented.
+- project persistence is now implemented with SQLite; the new endpoints and persistence tests still need human Codespace execution.
+- Guide sessions remain in-memory until project creation; persistence starts once a project is created.
