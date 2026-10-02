@@ -220,7 +220,7 @@ async def producer_plan(request: ProducerPlanRequest) -> ProducerPlanResponse:
         raise HTTPException(status_code=404, detail="Project not found")
     instructions, prompt = producer_prompt(project.creative_brief, project.concept or project.kind)
     try:
-        result = await get_assistant_runtime().ask("producer", prompt)
+        result = await get_assistant_runtime().ask("producer", prompt, extra_instructions=instructions)
         plan = parse_producer_plan(result.text)
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
