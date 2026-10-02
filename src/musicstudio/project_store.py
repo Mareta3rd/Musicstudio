@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
-from musicstudio.release import Release, ReleaseKind, ReleaseTrack, ArtworkPackage
+from musicstudio.release import Release, ReleaseKind
 
 
 def _now() -> str:
@@ -58,7 +58,7 @@ class ProjectStore:
                     state TEXT NOT NULL
                 )
             ''')
-                        db.execute('''
+            db.execute('''
                 CREATE TABLE IF NOT EXISTS versions (
                     id TEXT PRIMARY KEY,
                     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
