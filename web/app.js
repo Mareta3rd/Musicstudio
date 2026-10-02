@@ -168,14 +168,28 @@ async function renderProductionQueue(projectId, plannedTasks) {
       '<div class="production-task" data-agent="' + escapeHtml(task.agent_id) + '">' +
         '<div><div class="production-agent">' + escapeHtml(task.agent_id) + '</div>' +
         '<div class="production-objective">' + escapeHtml(task.objective) + '</div></div>' +
-        '<button class="ghost-btn run-task" data-task-index="' + index + '">Run</button>' +
+        '<button class="ghost-btn run-task" data-task-index="' + index + '"' +
+          (!task.executable ? ' disabled' : '') + '>' + (task.executable ? 'Run' : 'Soon') + '</button>' +
       '</div>'
     ).join("");
 
   try {
     const res = await fetch("/api/projects/" + projectId + "/tasks");
     const tasks = await res.json();
-    if (res.ok) bindTaskButtons(projectId, tasks);
+    if (res.ok) {
+      productionQueue.innerHTML = '<div class="production-title">Production queue</div>' +
+        tasks.map((task, index) =>
+          '<div class="production-task ' + (task.status === 'completed' ? 'done' : '') + '">' +
+            '<div><div class="production-agent">' + escapeHtml(task.agent_id) + '</div>' +
+            '<div class="production-objective">' + escapeHtml(task.objective) + '</div></div>' +
+            '<button class="ghost-btn run-task" data-task-index="' + index + '"' +
+              (!task.executable ? ' disabled' : '') + '>' +
+              (task.status === 'completed' ? 'Done' : (task.executable ? 'Run' : 'Soon')) +
+            '</button>' +
+          '</div>'
+        ).join("");
+      bindTaskButtons(projectId, tasks);
+    }
   } catch (_) {}
 }
 
