@@ -28,6 +28,10 @@ const guidePurpose = $("guidePurpose");
 const guideAnswer = $("guideAnswer");
 const guideNext = $("guideNext");
 const guideBrief = $("guideBrief");
+const guideProject = $("guideProject");
+const guideProjectTitle = $("guideProjectTitle");
+const guideProjectKind = $("guideProjectKind");
+const guideCreateProject = $("guideCreateProject");
 
 let guideSessionId = null;
 let guideQuestionId = null;
@@ -43,6 +47,7 @@ async function startGuide() {
   guideBody.hidden = false;
   guideAnswer.value = "";
   guideBrief.hidden = true;
+  guideProject.hidden = true;
   guideNext.textContent = "Continue ↗";
   guideAnswer.focus();
 }
@@ -70,6 +75,8 @@ async function answerGuide() {
       guidePurpose.textContent = "Pass it to the Producer or edit it in the main brief.";
       guideBrief.textContent = data.brief || "";
       guideBrief.hidden = false;
+      guideProject.hidden = false;
+      guideProjectTitle.value = promptBox.value.trim().slice(0, 60);
       guideNext.disabled = true;
       return;
     }
@@ -93,6 +100,60 @@ guideNext.addEventListener("click", () => {
 guideAnswer.addEventListener("keydown", (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     answerGuide();
+  }
+});
+
+guideCreateProject.addEventListener("click", async () => {
+  if (!guideSessionId) return;
+  const title = guideProjectTitle.value.trim();
+  if (!title) {
+    showError("Give the project a title first.");
+    guideProjectTitle.focus();
+    return;
+  }
+
+  guideCreateProject.disabled = true;
+  try {
+    const createRes = await fetch("/api/guide/create-project", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        session_id: guideSessionId,
+        title,
+        artist: "",
+        kind: guideProjectKind.value
+      })
+    });
+    const created = await createRes.json();
+    if (!createRes.ok) throw new Error(created.detail || "Project creation failed");
+
+    const planRes = await fetch("/api/projects/producer-plan", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({project_id: created.project.id})
+    });
+    const plan = await planRes.json();
+    if (!planRes.ok) throw new Error(plan.detail || "Producer plan failed");
+
+    guideBrief.textContent =
+      "PROJECT CREATED\n\n" +
+      "Version " + plan.version + " · Producer via " + plan.provider + "\n\n" +
+      plan.summary + "\n\n" +
+      (plan.creative_direction || []).map(item => "• " + item).join("\n") +
+      "\n\nSPECIALIST TASKS\n" +
+      (plan.tasks || []).map(task => "• " + task.agent_id + ": " + task.objective).join("\n");
+
+    resultTitle.textContent = "Project ready";
+    resultStatus.textContent = "PLANNED";
+    trackState.hidden = true;
+    emptyState.hidden = false;
+    document.querySelector(".empty-title").textContent = title;
+    document.querySelector(".empty-state .muted").textContent =
+      "Producer plan saved as version " + plan.version + ".";
+  } catch (err) {
+    showError(err.message || "Project creation failed");
+  } finally {
+    guideCreateProject.disabled = false;
   }
 });
 
