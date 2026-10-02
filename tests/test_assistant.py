@@ -21,3 +21,10 @@ async def test_missing_assistant_provider_fails_cleanly():
     runtime = SpecialistRuntime(AgentRegistry(), EmptyProvider())
     with pytest.raises(RuntimeError):
         await runtime.ask("lyricist", "Write a verse")
+
+
+def test_groq_requires_a_key_when_explicitly_constructed():
+    from musicstudio.assistant import GroqAssistantProvider
+
+    with pytest.raises(RuntimeError, match="GROQ_API_KEY"):
+        GroqAssistantProvider(api_key="")
