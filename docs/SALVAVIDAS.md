@@ -51,10 +51,13 @@ Implemented in this foundation block:
 - optional OpenAI assistant provider using `OPENAI_API_KEY` (default model: `gpt-6-luna`)
 - optional Gemini assistant provider using `GEMINI_API_KEY`
 - optional Groq/Qwen assistant provider using `GROQ_API_KEY`
-- automatic free-assistant fallback chain (Gemini -> Groq)
+- automatic free-assistant fallback chain (Gemini -> Groq -> OpenRouter)
 - specialist runtime capable of routing prompts to named production roles
 - Creative Guide with one-question-at-a-time flow
 - persistent project/version store using SQLite
+- persistent specialist task queue using SQLite
+- first executable lyricist/prosody pipeline
+- production queue visible in the web UI
 - Producer plan parser and project bridge
 - bounded specialist loop and agent execution audit primitives
 
@@ -63,7 +66,7 @@ Current limitations:
 - Mock mode completes jobs without real audio.
 - ACE-Step integration requires an independently running ACE-Step API server for real audio.
 - Generation jobs remain in-memory; project and version persistence is now implemented in SQLite.
-The specialist agents are registered and callable, with bounded-loop/audit infrastructure; autonomous multi-agent orchestration is intentionally postponed until the real audio pipeline is stable.
+The specialist agents are registered and callable; the Lyricist is the first executable specialist. Bounded-loop/audit infrastructure exists, while autonomous multi-agent orchestration is intentionally postponed until the real audio pipeline is stable.
 
 ## 3. HACIA DÓNDE VAMOS
 
