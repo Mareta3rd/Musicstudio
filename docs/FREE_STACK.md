@@ -135,3 +135,7 @@ Before adding a service ask:
 5. Does the feature truly require paid inference?
 
 If the answer to 1-4 is yes, do not pay for it.
+
+## Groq / Qwen fallback
+
+Groq currently lists `qwen/qwen3.8-27b` in its Free Plan limits at 30 RPM, 1,000 RPD, 8K TPM and 200K TPD. The model supports text/images, tool use, JSON Schema and reasoning. Musicstudio uses it as an optional free fallback, not as a hard dependency.
