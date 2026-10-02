@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from musicstudio.config import settings
 from musicstudio.agents.registry import AgentRegistry
 from musicstudio.agents.runtime import SpecialistRuntime
-from musicstudio.assistant import FallbackAssistantProvider, GeminiAssistantProvider, GroqAssistantProvider, OpenAIAssistantProvider
+from musicstudio.assistant import FallbackAssistantProvider, GeminiAssistantProvider, GroqAssistantProvider, OpenAIAssistantProvider, OpenRouterAssistantProvider
 from musicstudio.guide import CreativeGuide, GuideSession
 from musicstudio.producer import parse_producer_plan, producer_prompt
 from musicstudio.project_store import ProjectStore
@@ -109,6 +109,8 @@ def get_assistant_runtime() -> SpecialistRuntime:
             free_providers.append(GeminiAssistantProvider(model=settings.gemini_model))
         if os.getenv("GROQ_API_KEY"):
             free_providers.append(GroqAssistantProvider(model=settings.groq_model))
+        if os.getenv("OPENROUTER_API_KEY"):
+            free_providers.append(OpenRouterAssistantProvider(model=settings.openrouter_model))
         if not free_providers:
             raise HTTPException(status_code=503, detail="No free assistant provider is enabled")
         assistant = FallbackAssistantProvider(free_providers)
@@ -120,6 +122,8 @@ def get_assistant_runtime() -> SpecialistRuntime:
         assistant = GeminiAssistantProvider(model=settings.gemini_model)
     elif provider_name == "groq":
         assistant = GroqAssistantProvider(model=settings.groq_model)
+    elif provider_name == "openrouter":
+        assistant = OpenRouterAssistantProvider(model=settings.openrouter_model)
     else:
         raise HTTPException(status_code=503, detail="No external assistant provider is enabled")
     return SpecialistRuntime(agent_registry, assistant)
