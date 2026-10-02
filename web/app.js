@@ -21,6 +21,82 @@ const historyList = $("historyList");
 
 let history = [];
 
+const guideStart = $("guideStart");
+const guideBody = $("guideBody");
+const guideQuestion = $("guideQuestion");
+const guidePurpose = $("guidePurpose");
+const guideAnswer = $("guideAnswer");
+const guideNext = $("guideNext");
+const guideBrief = $("guideBrief");
+
+let guideSessionId = null;
+let guideQuestionId = null;
+
+async function startGuide() {
+  const res = await fetch("/api/guide/start", {method: "POST"});
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Guide could not start");
+  guideSessionId = data.session_id;
+  guideQuestionId = data.question_id;
+  guideQuestion.textContent = data.question || "Ready.";
+  guidePurpose.textContent = data.purpose ? "Focus: " + data.purpose : "";
+  guideBody.hidden = false;
+  guideAnswer.value = "";
+  guideBrief.hidden = true;
+  guideNext.textContent = "Continue ↗";
+  guideAnswer.focus();
+}
+
+async function answerGuide() {
+  if (!guideSessionId || !guideQuestionId) return;
+  const answer = guideAnswer.value.trim();
+  if (!answer) return;
+  guideNext.disabled = true;
+  try {
+    const res = await fetch("/api/guide/answer", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        session_id: guideSessionId,
+        question_id: guideQuestionId,
+        answer
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Guide answer failed");
+    guideAnswer.value = "";
+    if (data.complete) {
+      guideQuestion.textContent = "The creative brief is ready.";
+      guidePurpose.textContent = "Pass it to the Producer or edit it in the main brief.";
+      guideBrief.textContent = data.brief || "";
+      guideBrief.hidden = false;
+      guideNext.disabled = true;
+      return;
+    }
+    guideQuestionId = data.question_id;
+    guideQuestion.textContent = data.question || "";
+    guidePurpose.textContent = data.purpose ? "Focus: " + data.purpose : "";
+    guideAnswer.focus();
+  } catch (err) {
+    showError(err.message || "Guide error");
+  } finally {
+    if (!guideNext.disabled || !guideBrief.hidden) guideNext.disabled = false;
+  }
+}
+
+guideStart.addEventListener("click", () => {
+  startGuide().catch((err) => showError(err.message));
+});
+guideNext.addEventListener("click", () => {
+  answerGuide().catch((err) => showError(err.message));
+});
+guideAnswer.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    answerGuide();
+  }
+});
+
+
 async function loadProvider() {
   try {
     const res = await fetch("/api/providers");
