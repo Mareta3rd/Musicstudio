@@ -160,6 +160,11 @@ async def agents() -> list[dict]:
     ]
 
 
+@app.get("/api/projects", response_model=list[dict])
+async def list_projects() -> list[dict]:
+    return [project.__dict__ for project in project_store.list_projects()]
+
+
 @app.post("/api/projects", response_model=dict)
 async def create_project(request: CreateProjectRequest) -> dict:
     project = project_store.create_project(
