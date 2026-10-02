@@ -17,7 +17,7 @@ from musicstudio.producer import parse_producer_plan, producer_prompt
 from musicstudio.project_store import ProjectStore
 from musicstudio.library_store import LibraryStore
 from musicstudio.task_store import TaskStore
-from musicstudio.agent_service import AgentService
+from musicstudio.agent_service import AgentService, SUPPORTED_EXECUTABLE_AGENTS
 from musicstudio.release import ReleaseKind
 from musicstudio.models import GenerationJob, GenerationRequest, ProviderCapabilities
 from pydantic import BaseModel, Field
@@ -279,10 +279,30 @@ async def guide_create_project(request: GuideCreateProjectRequest) -> dict:
         concept="",
         creative_brief=brief,
     )
+    project_store.save_state(
+        project.id,
+        {
+            "creative_intent": dict(session.answers),
+            "release": {
+                "kind": request.kind.value,
+                "title": request.title,
+                "artist": request.artist,
+            },
+            "tracks": [],
+            "assets": [],
+            "lyrics": [],
+            "references": [],
+            "stems": [],
+            "mix": {"status": "not_started"},
+            "master": {"status": "not_started"},
+            "artwork": {},
+            "video": {},
+        },
+    )
     version = project_store.create_version(
         project.id,
         "Creative brief",
-        {"type": "creative_brief", "brief": brief, "source": "guide"},
+        {"type": "creative_brief", "brief": brief, "source": "guide", "answers": dict(session.answers)},
     )
     return {"project": project.__dict__, "version": version, "brief": brief}
 
@@ -291,7 +311,10 @@ async def guide_create_project(request: GuideCreateProjectRequest) -> dict:
 async def get_project_tasks(project_id: str) -> list[dict]:
     if project_store.get_project(project_id) is None:
         raise HTTPException(status_code=404, detail="Project not found")
-    return [task.__dict__ for task in task_store.list_tasks(project_id)]
+    return [
+        {**task.__dict__, "executable": task.agent_id in SUPPORTED_EXECUTABLE_AGENTS}
+        for task in task_store.list_tasks(project_id)
+    ]
 
 
 @app.post("/api/projects/{project_id}/tasks/{task_id}/run", response_model=dict)
