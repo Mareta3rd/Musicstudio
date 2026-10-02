@@ -8,11 +8,13 @@ Working branch: foundation/studio-core
 Latest human-verified local baseline:
 - Python 3.12.11
 - Doctor: green
-- Test suite: 16 passed on the last human run before the current project-persistence block
+- Test suite: 16 passed before the current persistence/agent block
 - Gemini assistant connectivity: VERIFIED
 - OpenAI API connectivity: reached live API but account returned insufficient quota
 - Gemini secret present in Codespaces, value not exposed
 - Groq provider added but not yet live-verified
+
+Remote development since that checkpoint has added project persistence, project state, asset catalog, Producer planning, bounded agent loops/audit, Creative Guide project creation UI, and free assistant fallback. These changes still require the next Codespace verification run.
 
 ## Inherited mechanisms
 
@@ -57,5 +59,8 @@ Synchronize the Codespace with the current remote checkpoint, run the full suite
 - ACE-Step is not yet running in the current Codespace.
 - FFmpeg is optional and not installed.
 - specialist agents are registered and routable, but autonomous multi-agent orchestration is not yet active.
-- project persistence is now implemented with SQLite; the new endpoints and persistence tests still need human Codespace execution.
+- project persistence is implemented with SQLite; the new endpoints and persistence tests still need human Codespace execution.
+- project state is stored as a generic JSON document separate from the SQL index.
+- asset catalog/provenance/lifecycle persistence is implemented; physical cleanup is intentionally not automatic.
 - Guide sessions remain in-memory until project creation; persistence starts once a project is created.
+- Producer planning is implemented with validated JSON parsing and project-version storage; live execution of a Producer plan is still pending.
