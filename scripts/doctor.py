@@ -22,6 +22,7 @@ def main() -> int:
     print("Assistant providers:")
     print(f"  [{'OK' if os.getenv('GEMINI_API_KEY') else '--'}] Gemini")
     print(f"  [{'OK' if os.getenv('GROQ_API_KEY') else '--'}] Groq")
+    print(f"  [{'OK' if os.getenv('OPENROUTER_API_KEY') else '--'}] OpenRouter (free, variable availability)")
     print(f"  [{'OK' if os.getenv('OPENAI_API_KEY') else '--'}] OpenAI (optional/paid)")
     print()
 
