@@ -105,3 +105,21 @@ class GroqAssistantProvider(AssistantProvider):
         if not isinstance(text, str) or not text.strip():
             raise RuntimeError("Groq returned empty content")
         return AssistantResult(text=text, model=self.model, provider=self.name)
+
+
+class FallbackAssistantProvider(AssistantProvider):
+    name = "auto-free"
+
+    def __init__(self, providers: list[AssistantProvider]) -> None:
+        self.providers = list(providers)
+
+    async def generate(self, instructions: str, prompt: str) -> AssistantResult:
+        if not self.providers:
+            raise RuntimeError("No free assistant provider is configured")
+        errors: list[str] = []
+        for provider in self.providers:
+            try:
+                return await provider.generate(instructions, prompt)
+            except Exception as exc:
+                errors.append(f"{provider.name}: {exc}")
+        raise RuntimeError("All configured free assistant providers failed: " + " | ".join(errors))
