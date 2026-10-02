@@ -65,9 +65,16 @@ class GuideAnswerResponse(BaseModel):
 
 
 def get_assistant_runtime() -> SpecialistRuntime:
-    if settings.assistant_provider == "openai":
+    provider_name = settings.assistant_provider
+    if provider_name == "auto":
+        if os.getenv("GEMINI_API_KEY"):
+            provider_name = "gemini"
+        elif os.getenv("OPENAI_API_KEY"):
+            provider_name = "openai"
+
+    if provider_name == "openai":
         assistant = OpenAIAssistantProvider(model=settings.openai_model)
-    elif settings.assistant_provider == "gemini":
+    elif provider_name == "gemini":
         assistant = GeminiAssistantProvider(model=settings.gemini_model)
     else:
         raise HTTPException(status_code=503, detail="No external assistant provider is enabled")
