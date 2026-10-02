@@ -125,3 +125,11 @@ audio { width:100%; margin: 4px 0 18px; }
 @media (max-width: 760px) {
   .guide-project-row { grid-template-columns:1fr; }
 }
+
+.production-queue { margin-top:10px; padding:12px; border:1px solid rgba(255,255,255,.07); border-radius:14px; background:#0e1013; }
+.production-title { font-size:11px; font-weight:800; letter-spacing:.12em; color:#7c818b; text-transform:uppercase; margin-bottom:9px; }
+.production-task { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid rgba(255,255,255,.06); }
+.production-task:first-of-type { border-top:0; }
+.production-task.done { opacity:.7; }
+.production-agent { font-size:11px; font-weight:750; color:#d8dbe1; }
+.production-objective { margin-top:3px; color:#777d88; font-size:10px; line-height:1.4; }
