@@ -37,7 +37,7 @@ def main() -> int:
         failed |= not ok
 
     print("\nSystem tools:")
-    for tool in ["git", "ffmpeg"]:
+    for tool in ["git", "git-lfs", "ffmpeg"]:
         path = shutil.which(tool)
         marker = "OK" if path else "OPTIONAL"
         print(f"  [{marker:8}] {tool}" + (f" -> {path}" if path else ""))
