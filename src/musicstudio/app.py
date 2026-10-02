@@ -13,6 +13,9 @@ from musicstudio.agents.registry import AgentRegistry
 from musicstudio.agents.runtime import SpecialistRuntime
 from musicstudio.assistant import GeminiAssistantProvider, OpenAIAssistantProvider
 from musicstudio.guide import CreativeGuide, GuideSession
+from musicstudio.producer import parse_producer_plan, producer_prompt
+from musicstudio.project_store import ProjectStore
+from musicstudio.release import ReleaseKind
 from musicstudio.models import GenerationJob, GenerationRequest, ProviderCapabilities
 from pydantic import BaseModel, Field
 from musicstudio.orchestrator import MusicOrchestrator
@@ -65,6 +68,35 @@ class GuideAnswerResponse(BaseModel):
     brief: str | None = None
 
 
+class CreateProjectRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    artist: str = Field(default="", max_length=200)
+    kind: ReleaseKind = ReleaseKind.ep
+    concept: str = Field(default="", max_length=2000)
+    creative_brief: str = Field(default="", max_length=16000)
+
+
+class GuideCreateProjectRequest(BaseModel):
+    session_id: str = Field(min_length=1, max_length=100)
+    title: str = Field(min_length=1, max_length=200)
+    artist: str = Field(default="", max_length=200)
+    kind: ReleaseKind = ReleaseKind.mini
+
+
+class ProducerPlanRequest(BaseModel):
+    project_id: str = Field(min_length=1, max_length=100)
+
+
+class ProducerPlanResponse(BaseModel):
+    project_id: str
+    summary: str
+    creative_direction: list[str]
+    tasks: list[dict]
+    version: int
+    provider: str
+    model: str
+
+
 def get_assistant_runtime() -> SpecialistRuntime:
     provider_name = settings.assistant_provider
     if provider_name == "auto":
@@ -84,6 +116,7 @@ def get_assistant_runtime() -> SpecialistRuntime:
 
 guides: dict[str, GuideSession] = {}
 creative_guide = CreativeGuide()
+project_store = ProjectStore()
 
 app = FastAPI(title="Musicstudio", version="0.1.0")
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
@@ -119,7 +152,105 @@ async def agents() -> list[dict]:
     ]
 
 
+@app.post("/api/projects", response_model=dict)
+async def create_project(request: CreateProjectRequest) -> dict:
+    project = project_store.create_project(
+        title=request.title,
+        artist=request.artist,
+        kind=request.kind,
+        concept=request.concept,
+        creative_brief=request.creative_brief,
+    )
+    return project.__dict__
+
+
+@app.get("/api/projects/{project_id}", response_model=dict)
+async def get_project(project_id: str) -> dict:
+    project = project_store.get_project(project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project.__dict__
+
+
+@app.get("/api/projects/{project_id}/versions", response_model=list[dict])
+async def get_project_versions(project_id: str) -> list[dict]:
+    if project_store.get_project(project_id) is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project_store.list_versions(project_id)
+
+
+@app.post("/api/guide/create-project", response_model=dict)
+async def guide_create_project(request: GuideCreateProjectRequest) -> dict:
+    session = guides.get(request.session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Guide session not found")
+    brief = creative_guide.brief(session)
+    project = project_store.create_project(
+        title=request.title,
+        artist=request.artist,
+        kind=request.kind,
+        concept="",
+        creative_brief=brief,
+    )
+    version = project_store.create_version(
+        project.id,
+        "Creative brief",
+        {"type": "creative_brief", "brief": brief, "source": "guide"},
+    )
+    return {"project": project.__dict__, "version": version, "brief": brief}
+
+
+@app.post("/api/projects/producer-plan", response_model=ProducerPlanResponse)
+async def producer_plan(request: ProducerPlanRequest) -> ProducerPlanResponse:
+    project = project_store.get_project(request.project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    instructions, prompt = producer_prompt(project.creative_brief, project.concept or project.kind)
+    try:
+        result = await get_assistant_runtime().ask("producer", prompt)
+        plan = parse_producer_plan(result.text)
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    version = project_store.create_version(
+        project.id,
+        "Producer plan",
+        {
+            "type": "producer_plan",
+            "summary": plan.summary,
+            "creative_direction": list(plan.creative_direction),
+            "tasks": [
+                {
+                    "agent_id": task.agent_id,
+                    "objective": task.objective,
+                    "acceptance": list(task.acceptance),
+                }
+                for task in plan.tasks
+            ],
+        },
+    )
+    return ProducerPlanResponse(
+        project_id=project.id,
+        summary=plan.summary,
+        creative_direction=list(plan.creative_direction),
+        tasks=[
+            {
+                "agent_id": task.agent_id,
+                "objective": task.objective,
+                "acceptance": list(task.acceptance),
+            }
+            for task in plan.tasks
+        ],
+        version=version,
+        provider=result.provider,
+        model=result.model,
+    )
+
+
 @app.post("/api/guide/start", response_model=GuideStartResponse)
+
 async def guide_start() -> GuideStartResponse:
     import uuid
 
