@@ -34,9 +34,17 @@ class AceStepProvider(MusicProvider):
         ],
     )
 
-    def __init__(self, base_url: str, token: str = "") -> None:
+    def __init__(
+        self,
+        base_url: str,
+        token: str = "",
+        transport: httpx.AsyncBaseTransport | None = None,
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.token = token
+        # Optional transport keeps the provider deterministic and testable without
+        # changing production behavior. Real deployments leave it as None.
+        self.transport = transport
 
     def _headers(self) -> dict[str, str]:
         if not self.token:
@@ -61,7 +69,7 @@ class AceStepProvider(MusicProvider):
         if request.seed is not None:
             payload["seed"] = request.seed
 
-        async with httpx.AsyncClient(timeout=60) as client:
+        async with httpx.AsyncClient(timeout=60, transport=self.transport) as client:
             response = await client.post(
                 f"{self.base_url}/release_task",
                 json=payload,
@@ -70,7 +78,7 @@ class AceStepProvider(MusicProvider):
             response.raise_for_status()
             body = response.json()
 
-        if body.get("code") not in (None, 200):
+        if body.get("code") not in (None, 200, "200"):
             raise RuntimeError(body.get("error") or "ACE-Step rejected the request")
 
         data = body.get("data") or {}
@@ -80,7 +88,7 @@ class AceStepProvider(MusicProvider):
         return str(task_id)
 
     async def status(self, provider_job_id: str) -> ProviderStatus:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=30, transport=self.transport) as client:
             response = await client.post(
                 f"{self.base_url}/query_result",
                 json={"task_id_list": [provider_job_id]},
@@ -148,7 +156,7 @@ class AceStepProvider(MusicProvider):
 
     async def download_audio(self, audio_path: str) -> tuple[bytes, str]:
         url = self.build_audio_url(audio_path)
-        async with httpx.AsyncClient(timeout=120) as client:
+        async with httpx.AsyncClient(timeout=120, transport=self.transport) as client:
             response = await client.get(url, headers=self._headers())
             response.raise_for_status()
             return response.content, response.headers.get("content-type", "audio/mpeg")
