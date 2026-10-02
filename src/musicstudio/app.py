@@ -15,6 +15,7 @@ from musicstudio.assistant import FallbackAssistantProvider, GeminiAssistantProv
 from musicstudio.guide import CreativeGuide, GuideSession
 from musicstudio.producer import parse_producer_plan, producer_prompt
 from musicstudio.project_store import ProjectStore
+from musicstudio.library_store import LibraryStore
 from musicstudio.release import ReleaseKind
 from musicstudio.models import GenerationJob, GenerationRequest, ProviderCapabilities
 from pydantic import BaseModel, Field
@@ -125,6 +126,7 @@ def get_assistant_runtime() -> SpecialistRuntime:
 guides: dict[str, GuideSession] = {}
 creative_guide = CreativeGuide()
 project_store = ProjectStore()
+library_store = LibraryStore()
 
 app = FastAPI(title="Musicstudio", version="0.1.0")
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
@@ -158,6 +160,47 @@ async def agents() -> list[dict]:
         }
         for agent in agent_registry.all()
     ]
+
+
+@app.get("/api/assets", response_model=list[dict])
+async def list_assets(project_id: str | None = None, state: str | None = None) -> list[dict]:
+    return [asset.__dict__ for asset in library_store.list_assets(project_id, state)]
+
+
+class CreateAssetRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=300)
+    path: str = Field(min_length=1, max_length=2000)
+    kind: str = Field(min_length=1, max_length=100)
+    project_id: str | None = Field(default=None, max_length=100)
+    state: str = Field(default="active", max_length=40)
+    source: str = Field(default="", max_length=2000)
+    license: str = Field(default="", max_length=500)
+    checksum: str | None = Field(default=None, max_length=128)
+    retention_days: int | None = Field(default=None, ge=0, le=3650)
+
+
+@app.post("/api/assets", response_model=dict)
+async def create_asset(request: CreateAssetRequest) -> dict:
+    asset = library_store.add_asset(
+        name=request.name,
+        path=request.path,
+        kind=request.kind,
+        project_id=request.project_id,
+        state=request.state,
+        source=request.source,
+        license=request.license,
+        checksum=request.checksum,
+        retention_days=request.retention_days,
+    )
+    return asset.__dict__
+
+
+@app.post("/api/assets/{asset_id}/state", response_model=dict)
+async def update_asset_state(asset_id: str, state: str) -> dict:
+    asset = library_store.move_state(asset_id, state)
+    if asset is None:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return asset.__dict__
 
 
 @app.get("/api/projects", response_model=list[dict])
