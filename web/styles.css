@@ -119,3 +119,9 @@ audio { width:100%; margin: 4px 0 18px; }
 .guide-actions { margin-top:9px; }
 .guide-next { margin-top:0; padding:11px 13px; }
 .guide-brief { margin-top:10px; padding:11px; border-radius:12px; background:#0d0f12; border:1px solid var(--line); white-space:pre-wrap; color:#bbc0c9; font-size:11px; line-height:1.5; }
+
+.guide-project { margin-top:10px; }
+.guide-project-row { display:grid; grid-template-columns:1.25fr .75fr; gap:8px; margin-bottom:9px; }
+@media (max-width: 760px) {
+  .guide-project-row { grid-template-columns:1fr; }
+}
