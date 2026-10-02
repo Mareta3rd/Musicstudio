@@ -16,6 +16,8 @@ from musicstudio.guide import CreativeGuide, GuideSession
 from musicstudio.producer import parse_producer_plan, producer_prompt
 from musicstudio.project_store import ProjectStore
 from musicstudio.library_store import LibraryStore
+from musicstudio.task_store import TaskStore
+from musicstudio.agent_service import AgentService
 from musicstudio.release import ReleaseKind
 from musicstudio.models import GenerationJob, GenerationRequest, ProviderCapabilities
 from pydantic import BaseModel, Field
@@ -127,6 +129,7 @@ guides: dict[str, GuideSession] = {}
 creative_guide = CreativeGuide()
 project_store = ProjectStore()
 library_store = LibraryStore()
+task_store = TaskStore()
 
 app = FastAPI(title="Musicstudio", version="0.1.0")
 app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
@@ -279,6 +282,60 @@ async def guide_create_project(request: GuideCreateProjectRequest) -> dict:
     return {"project": project.__dict__, "version": version, "brief": brief}
 
 
+@app.get("/api/projects/{project_id}/tasks", response_model=list[dict])
+async def get_project_tasks(project_id: str) -> list[dict]:
+    if project_store.get_project(project_id) is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return [task.__dict__ for task in task_store.list_tasks(project_id)]
+
+
+@app.post("/api/projects/{project_id}/tasks/{task_id}/run", response_model=dict)
+async def run_project_task(project_id: str, task_id: str) -> dict:
+    task = task_store.get_task(task_id)
+    if task is None or task.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Task not found")
+    project = project_store.get_project(project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if task.status == "completed":
+        return task.__dict__
+
+    runtime = get_assistant_runtime()
+    service = AgentService(agent_registry, runtime)
+    task_store.set_status(task.id, "running")
+    try:
+        loop, audit = await service.run_task(
+            task.agent_id,
+            task.objective,
+            project.creative_brief,
+            project_id=project.id,
+        )
+        candidate = loop.candidate
+        result_payload = {
+            "status": loop.status,
+            "candidate": candidate,
+            "audit": audit.__dict__,
+        }
+        status = "completed" if loop.status == "accepted" else "review"
+        task_store.set_status(task.id, status, result_payload)
+        project_store.create_version(
+            project.id,
+            f"{task.agent_id} task result",
+            {
+                "type": "agent_task_result",
+                "task_id": task.id,
+                "agent_id": task.agent_id,
+                "status": loop.status,
+                "candidate": candidate,
+                "audit": audit.__dict__,
+            },
+        )
+        return task_store.get_task(task.id).__dict__
+    except Exception as exc:
+        task_store.set_status(task.id, "failed", {"error": str(exc)})
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
 @app.post("/api/projects/producer-plan", response_model=ProducerPlanResponse)
 async def producer_plan(request: ProducerPlanRequest) -> ProducerPlanResponse:
     project = project_store.get_project(request.project_id)
@@ -292,6 +349,10 @@ async def producer_plan(request: ProducerPlanRequest) -> ProducerPlanResponse:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    for task in plan.tasks:
+        if agent_registry.get(task.agent_id) is None:
+            raise HTTPException(status_code=502, detail=f"Producer selected unknown agent: {task.agent_id}")
 
     version = project_store.create_version(
         project.id,
@@ -310,6 +371,9 @@ async def producer_plan(request: ProducerPlanRequest) -> ProducerPlanResponse:
             ],
         },
     )
+    for task in plan.tasks:
+        task_store.create_task(project.id, task.agent_id, task.objective, task.acceptance)
+
     return ProducerPlanResponse(
         project_id=project.id,
         summary=plan.summary,
