@@ -1,94 +1,44 @@
 # Musicstudio — Control Plane
 
-## Purpose
+Musicstudio exposes one canonical control surface for every client and assistant.
 
-Musicstudio exposes one canonical control surface for browsers, desktop clients, CLI tools, workers and optional AI assistants.
+## Core object
 
-The control plane is intentionally separate from the user interface and from any single model vendor.
+MusicControlPlane is independent of FastAPI and the browser.
 
-## Operations
+It can be used by:
+- web UI
+- desktop shell
+- CLI
+- worker scheduler
+- MCP server
+- future external assistants
 
-First-class operations should eventually include:
+## Read operations
 
 - inspect_project
-- inspect_release
-- inspect_track
-- inspect_audio
-- create_generation
-- create_version
-- analyze_reference
-- propose_change
-- apply_change
-- compare_versions
-- render_preview
-- render_mix
-- render_master
-- export_delivery
-- list_assets
-- inspect_provenance
-- list_workers
-- schedule_task
-- inspect_task
+- inspect_state
+- inspect_versions
+- inspect_tasks
+- inspect_assets
+- specialist_ids
 
-## MCP
+## Mutation boundary
 
-An MCP server can expose a safe subset of these operations to compatible assistants.
+Mutations must remain explicit and versioned.
 
-Read operations should be separated from mutating operations.
+Future MCP tools should call ControlPlane methods instead of bypassing them.
 
-Mutating operations should carry:
+## MCP implementation note
 
-- project/version id
-- requested operation
-- input assets
-- scope
-- expected output
-- provenance
-- whether a new version is required
-- cost class
-- confirmation policy
+The current official Python MCP SDK is v2 and implements the 2026-07-28 MCP revision. The SDK project currently has published security advisories, including high-severity issues around HTTP/authentication behavior. Musicstudio therefore keeps the MCP contract documented but postpones adding the SDK as a hard dependency until its security posture is reviewed.
 
-## ChatGPT / Apps SDK
+The first transport target should be local stdio. Remote Streamable HTTP comes later, with authentication and origin validation.
 
-OpenAI's current Apps SDK is built on MCP and can package an application whose logic and UI connect to an existing backend.
+## Security
 
-Musicstudio can therefore have an optional ChatGPT-facing application later, while the core application remains independently usable.
+Read-only tools can expose broader project metadata.
 
-OpenAI API usage is optional and must not be assumed to be covered by a ChatGPT subscription.
+Mutation tools must receive project/version scope, operation, inputs, expected output, cost class and confirmation policy.
 
-## Agent interaction
-
-The Producer can use the same control plane as an external assistant:
-
-assistant -> control plane -> project state -> specialist -> operation -> new version -> QA
-
-## Security model
-
-Every control request must be attributable to a caller and scoped to a project.
-
-Remote workers never receive unrestricted access to the whole library.
-
-By default:
-
-- read-only tools are broader
-- file transforms are scoped
-- destructive operations create a version
-- provenance-sensitive operations require explicit confirmation
-- paid providers require explicit opt-in
-
-## Transport independence
-
-Initial implementation:
-
-- local HTTP API
-- CLI
-- browser
-
-Future:
-
-- MCP server
-- desktop bridge
-- remote worker RPC
-- optional WebSocket event stream
-
-The project API remains the canonical contract.
+Remote workers receive task-scoped data only.
