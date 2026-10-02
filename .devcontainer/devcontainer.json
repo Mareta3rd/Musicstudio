@@ -11,6 +11,10 @@
     "GEMINI_API_KEY": {
       "description": "Optional Gemini API key for Musicstudio specialist agents.",
       "documentationUrl": "https://ai.google.dev/gemini-api/docs/api-key"
+    },
+    "GROQ_API_KEY": {
+      "description": "Optional Groq API key for Musicstudio free-tier assistant fallback.",
+      "documentationUrl": "https://console.groq.com/keys"
     }
   },
   "portsAttributes": {
