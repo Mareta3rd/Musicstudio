@@ -32,6 +32,7 @@ const guideProject = $("guideProject");
 const guideProjectTitle = $("guideProjectTitle");
 const guideProjectKind = $("guideProjectKind");
 const guideCreateProject = $("guideCreateProject");
+const productionQueue = $("productionQueue");
 
 let guideSessionId = null;
 let guideQuestionId = null;
@@ -139,9 +140,9 @@ guideCreateProject.addEventListener("click", async () => {
       "PROJECT CREATED\n\n" +
       "Version " + plan.version + " · Producer via " + plan.provider + "\n\n" +
       plan.summary + "\n\n" +
-      (plan.creative_direction || []).map(item => "• " + item).join("\n") +
-      "\n\nSPECIALIST TASKS\n" +
-      (plan.tasks || []).map(task => "• " + task.agent_id + ": " + task.objective).join("\n");
+      (plan.creative_direction || []).map(item => "• " + item).join("\n");
+
+    renderProductionQueue(created.project.id, plan.tasks || []);
 
     resultTitle.textContent = "Project ready";
     resultStatus.textContent = "PLANNED";
@@ -157,6 +158,58 @@ guideCreateProject.addEventListener("click", async () => {
   }
 });
 
+
+
+async function renderProductionQueue(projectId, plannedTasks) {
+  productionQueue.hidden = false;
+  productionQueue.innerHTML =
+    '<div class="production-title">Production queue</div>' +
+    plannedTasks.map((task, index) =>
+      '<div class="production-task" data-agent="' + escapeHtml(task.agent_id) + '">' +
+        '<div><div class="production-agent">' + escapeHtml(task.agent_id) + '</div>' +
+        '<div class="production-objective">' + escapeHtml(task.objective) + '</div></div>' +
+        '<button class="ghost-btn run-task" data-task-index="' + index + '">Run</button>' +
+      '</div>'
+    ).join("");
+
+  try {
+    const res = await fetch("/api/projects/" + projectId + "/tasks");
+    const tasks = await res.json();
+    if (res.ok) bindTaskButtons(projectId, tasks);
+  } catch (_) {}
+}
+
+function bindTaskButtons(projectId, tasks) {
+  productionQueue.querySelectorAll(".run-task").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const task = tasks[Number(button.dataset.taskIndex)];
+      if (!task) return;
+      button.disabled = true;
+      button.textContent = "…";
+      try {
+        const res = await fetch("/api/projects/" + projectId + "/tasks/" + task.id + "/run", {
+          method: "POST"
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Task failed");
+
+        const row = button.closest(".production-task");
+        if (row) {
+          row.classList.add("done");
+          button.textContent = data.status === "completed" ? "Done" : "Review";
+        }
+        if (data.result && data.result.candidate) {
+          guideBrief.hidden = false;
+          guideBrief.textContent += "\n\nLYRICIST RESULT\n\n" + data.result.candidate;
+        }
+      } catch (err) {
+        button.disabled = false;
+        button.textContent = "Retry";
+        showError(err.message || "Task failed");
+      }
+    });
+  });
+}
 
 async function loadProvider() {
   try {
