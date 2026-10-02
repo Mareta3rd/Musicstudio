@@ -302,7 +302,14 @@ async def run_project_task(project_id: str, task_id: str) -> dict:
 
     runtime = get_assistant_runtime()
     service = AgentService(agent_registry, runtime)
-    task_store.set_status(task.id, "running")
+    claimed = task_store.claim_task(task.id)
+    if claimed is None:
+        current = task_store.get_task(task.id)
+        if current is None:
+            raise HTTPException(status_code=404, detail="Task not found")
+        if current.status == "completed":
+            return current.__dict__
+        raise HTTPException(status_code=409, detail=f"Task is already {current.status}")
     try:
         loop, audit = await service.run_task(
             task.agent_id,
