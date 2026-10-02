@@ -15,6 +15,10 @@
     "GROQ_API_KEY": {
       "description": "Optional Groq API key for Musicstudio free-tier assistant fallback.",
       "documentationUrl": "https://console.groq.com/keys"
+    },
+    "OPENROUTER_API_KEY": {
+      "description": "Optional OpenRouter API key for free-model fallback.",
+      "documentationUrl": "https://openrouter.ai/settings/keys"
     }
   },
   "portsAttributes": {
