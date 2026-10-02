@@ -228,6 +228,29 @@ async def get_project(project_id: str) -> dict:
     return project.__dict__
 
 
+class ProjectStateRequest(BaseModel):
+    state: dict
+
+
+@app.get("/api/projects/{project_id}/state", response_model=dict)
+async def get_project_state(project_id: str) -> dict:
+    if project_store.get_project(project_id) is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project_store.get_state(project_id)
+
+
+@app.put("/api/projects/{project_id}/state", response_model=dict)
+async def save_project_state(project_id: str, request: ProjectStateRequest) -> dict:
+    if not project_store.save_state(project_id, request.state):
+        raise HTTPException(status_code=404, detail="Project not found")
+    version = project_store.create_version(
+        project_id,
+        "Project state",
+        {"type": "project_state", "state": request.state},
+    )
+    return {"saved": True, "version": version, "state": request.state}
+
+
 @app.get("/api/projects/{project_id}/versions", response_model=list[dict])
 async def get_project_versions(project_id: str) -> list[dict]:
     if project_store.get_project(project_id) is None:
