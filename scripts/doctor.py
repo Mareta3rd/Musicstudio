@@ -18,7 +18,11 @@ def main() -> int:
     print("Musicstudio Doctor")
     print("==================")
     print(f"Python: {sys.version.split()[0]}")
-    print(f"Provider: {os.getenv('MUSICSTUDIO_PROVIDER', 'mock')}")
+    print(f"Music provider: {os.getenv('MUSICSTUDIO_PROVIDER', 'mock')}")
+    print("Assistant providers:")
+    print(f"  [{{'OK' if os.getenv('GEMINI_API_KEY') else '--'}}] Gemini")
+    print(f"  [{{'OK' if os.getenv('GROQ_API_KEY') else '--'}}] Groq")
+    print(f"  [{{'OK' if os.getenv('OPENAI_API_KEY') else '--'}}] OpenAI (optional/paid)")
     print()
 
     failed = False
