@@ -7,7 +7,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Settings:
     provider: str = os.getenv("MUSICSTUDIO_PROVIDER", "mock").strip().lower()
-    assistant_provider: str = os.getenv("MUSICSTUDIO_ASSISTANT_PROVIDER", "none").strip().lower()
+    assistant_provider: str = os.getenv("MUSICSTUDIO_ASSISTANT_PROVIDER", "auto").strip().lower()
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-6-luna").strip()
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.7-flash").strip()
     ace_step_url: str = os.getenv("ACE_STEP_URL", "http://127.0.0.1:8001").rstrip("/")
