@@ -3,18 +3,25 @@ from __future__ import annotations
 import asyncio
 import os
 
-from musicstudio.assistant import OpenAIAssistantProvider
+from musicstudio.assistant import GeminiAssistantProvider, OpenAIAssistantProvider
 
 
 async def main() -> int:
-    if not os.getenv("OPENAI_API_KEY"):
-        print("OPENAI_API_KEY is not set.")
+    provider_name = os.getenv("MUSICSTUDIO_ASSISTANT_PROVIDER", "").strip().lower()
+    if not provider_name:
+        provider_name = "gemini" if os.getenv("GEMINI_API_KEY") else "openai"
+
+    if provider_name == "gemini":
+        provider = GeminiAssistantProvider()
+    elif provider_name == "openai":
+        provider = OpenAIAssistantProvider()
+    else:
+        print(f"Unsupported assistant provider: {provider_name}")
         return 2
 
-    provider = OpenAIAssistantProvider()
     result = await provider.generate(
-        "You are a careful connectivity test. Answer in one sentence.",
-        "Reply only: Musicstudio API connection works.",
+        "You are a tiny connectivity test. Answer in one short sentence.",
+        "Reply only: Musicstudio assistant connection works.",
     )
     print(result.text)
     print(f"provider={result.provider} model={result.model}")
