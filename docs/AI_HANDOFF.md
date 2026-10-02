@@ -39,6 +39,7 @@ Musicstudio adopts the most useful tested mechanisms from the Arsa & Pisha seman
 - OpenAI specialist provider (optional; account currently has no API credits)
 - Gemini specialist provider (free-tier candidate; live-verified)
 - Groq/Qwen specialist provider (free-tier fallback; provider added)
+- OpenRouter free-model provider (opportunistic fallback; provider added)
 - release/album domain
 - addon registry
 - specialist-agent registry
@@ -60,6 +61,9 @@ Synchronize the Codespace with the current remote checkpoint, run the full suite
 - FFmpeg is optional and not installed.
 - specialist agents are registered and routable, but autonomous multi-agent orchestration is not yet active.
 - project persistence is implemented with SQLite; the new endpoints and persistence tests still need human Codespace execution.
+- persistent specialist task queue is implemented; new task endpoints/tests still need human Codespace execution.
+- lyricist/prosody execution path is implemented; live Gemini execution through the task endpoint still needs verification.
+- OpenRouter free fallback is implemented; live connectivity is not verified.
 - project state is stored as a generic JSON document separate from the SQL index.
 - asset catalog/provenance/lifecycle persistence is implemented; physical cleanup is intentionally not automatic.
 - Guide sessions remain in-memory until project creation; persistence starts once a project is created.
