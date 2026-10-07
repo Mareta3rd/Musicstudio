@@ -145,6 +145,21 @@ class AceStepProvider(MusicProvider):
             },
         )
 
+    async def health(self) -> dict[str, Any]:
+        """Probe the ACE-Step HTTP service without creating a generation job."""
+        async with httpx.AsyncClient(timeout=10, transport=self.transport) as client:
+            response = await client.get(
+                f"{self.base_url}/health",
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            body = response.json()
+        return {
+            "reachable": True,
+            "status_code": response.status_code,
+            "response": body,
+        }
+
     def build_audio_url(self, audio_path: str) -> str:
         # ACE-Step normally returns /v1/audio?path=... .
         # Some deployments may return an absolute URL or a raw server path.
