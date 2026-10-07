@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-02
 Working branch: foundation/studio-core
-Current checkpoint: 9226eb0d15a597c9e323cf3bde65af922a417887
+Current checkpoint: 0975050eba1fa838cd97b4552eb632db25c3aa68
 
 ## 1. DE DÓNDE VENIMOS
 
@@ -30,11 +30,13 @@ Latest engineering block:
 - Added tests covering submission payloads, completed-result metadata normalization, audio download URL handling and provider failures.
 
 Verification state:
-- Previous checkpoint 9709160d07e3baabb76ffc7c9c59504e7adb0116 was green on Python 3.11 and 3.12.
-- Current checkpoint 9226eb0d15a597c9e323cf3bde65af922a417887 has a GitHub CI run in progress.
-- No local test result is claimed because the current execution environment cannot reach github.com.
+- Previous ACE-Step contract block failed one test because query_result "code" could be a string; that defect was corrected.
+- Current code checkpoint 0975050eba1fa838cd97b4552eb632db25c3aa68 is CI-verified in Python 3.11 and 3.12.
+- Deterministic ACE-Step tests now cover submission, status/result normalization, audio retrieval, failure handling and health preflight.
+- No real ACE-Step generation has been executed yet; that still requires the target runtime/hardware.
 
 ## 3. HACIA DÓNDE VAMOS
+
 
 Immediate sequence:
 1. Close verification of checkpoint 9226eb0d15a597c9e323cf3bde65af922a417887.
