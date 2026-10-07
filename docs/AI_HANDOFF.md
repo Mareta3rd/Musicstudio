@@ -4,7 +4,7 @@
 
 Repository: Mareta3rd/Musicstudio
 Working branch: foundation/studio-core
-Current checkpoint: 9226eb0d15a597c9e323cf3bde65af922a417887
+Current checkpoint: 0975050eba1fa838cd97b4552eb632db25c3aa68
 
 Latest repository CI before this block:
 - Python 3.12: success
@@ -53,13 +53,17 @@ Musicstudio adopts the most useful tested mechanisms from the Arsa & Pisha seman
 
 ## Primary next target
 
-After the current CI checkpoint is green, run the full Codespace work-block protocol and exercise the end-to-end control flow:
-Guide -> persistent Project -> Producer plan -> queued tasks -> first live Lyricist task.
+The software foundation is now CI-verified in Python 3.11 and 3.12.
 
-Then move directly into real ACE-Step verification:
-release_task -> query_result -> audio retrieval -> Musicstudio audio proxy -> browser playback.
+Immediate sequence:
+1. In the Codespace, run the full work-block protocol and exercise Guide -> persistent Project -> Producer plan -> task queue.
+2. Verify the first live Lyricist task using the configured free assistant.
+3. Connect a real ACE-Step 1.5 instance and verify release_task -> query_result -> audio retrieval -> Musicstudio audio proxy -> browser playback.
+4. Once real audio is stable, move into non-destructive editing, timeline, stems, analysis, mix/finish/mastering and delivery.
+5. Use the incoming hardware to benchmark the local worker and choose the appropriate ACE-Step model/runtime rather than pre-committing to a VRAM assumption.
 
 ## Known limitations
+
 
 - ACE-Step is not yet running in the current Codespace.
 - FFmpeg is optional and not installed.
