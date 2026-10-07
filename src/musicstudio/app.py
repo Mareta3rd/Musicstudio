@@ -162,6 +162,24 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "provider": provider.name}
 
 
+@app.get("/api/provider/diagnostics")
+async def provider_diagnostics() -> dict:
+    """Check whether the active generation provider is reachable and usable."""
+    if hasattr(provider, "health"):
+        try:
+            details = await provider.health()
+            return {"provider": provider.name, "ok": True, **details}
+        except Exception as exc:
+            return {"provider": provider.name, "ok": False, "reachable": False, "error": str(exc)}
+    return {
+        "provider": provider.name,
+        "ok": True,
+        "reachable": True,
+        "mode": "local-mock",
+        "note": "Mock provider is available; no external generation service is required.",
+    }
+
+
 @app.get("/api/providers", response_model=list[ProviderCapabilities])
 async def providers() -> list[ProviderCapabilities]:
     return [provider.capabilities]
