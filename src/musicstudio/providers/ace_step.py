@@ -97,7 +97,7 @@ class AceStepProvider(MusicProvider):
             response.raise_for_status()
             body = response.json()
 
-        if body.get("code") not in (None, 200):
+        if body.get("code") not in (None, 200, "200"):
             return ProviderStatus(
                 status=JobStatus.failed,
                 error=body.get("error") or "ACE-Step query failed",
