@@ -115,3 +115,18 @@ async def test_ace_step_failed_status_preserves_provider_error():
 
     assert status.status == JobStatus.failed
     assert status.error == "GPU out of memory"
+
+
+@pytest.mark.asyncio
+async def test_ace_step_health_probe_does_not_create_a_job():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "GET"
+        assert request.url.path == "/health"
+        return httpx.Response(200, json={"status": "ok"})
+
+    provider = AceStepProvider("http://ace.local", transport=httpx.MockTransport(handler))
+    result = await provider.health()
+
+    assert result["reachable"] is True
+    assert result["status_code"] == 200
+    assert result["response"]["status"] == "ok"
