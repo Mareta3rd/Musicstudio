@@ -1,0 +1,41 @@
+{
+  "name": "Musicstudio",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
+  },
+  "postCreateCommand": "python -m pip install -U pip && python -m pip install -e '.[dev]'",
+  "forwardPorts": [8000],
+  "secrets": {
+    "OPENAI_API_KEY": {
+      "description": "Optional OpenAI API key for Musicstudio specialist agents.",
+      "documentationUrl": "https://platform.openai.com/api-keys"
+    },
+    "GEMINI_API_KEY": {
+      "description": "Optional Gemini API key for Musicstudio specialist agents.",
+      "documentationUrl": "https://ai.google.dev/gemini-api/docs/api-key"
+    },
+    "GROQ_API_KEY": {
+      "description": "Optional Groq API key for Musicstudio free-tier assistant fallback.",
+      "documentationUrl": "https://console.groq.com/keys"
+    },
+    "OPENROUTER_API_KEY": {
+      "description": "Optional OpenRouter API key for free-model fallback.",
+      "documentationUrl": "https://openrouter.ai/settings/keys"
+    }
+  },
+  "portsAttributes": {
+    "8000": {
+      "label": "Musicstudio",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance"
+      ]
+    }
+  }
+}

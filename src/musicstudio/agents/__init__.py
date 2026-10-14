@@ -1,0 +1,1 @@
+"""Musicstudio specialist-agent registry."""
